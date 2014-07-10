@@ -5,15 +5,11 @@ pub fn pathmatch(pattern: &str, pathstring: &str) -> bool
     loop {
         match pattern_chars.next() {
             None => return path_chars.next().is_none(),
+            Some('?') => return path_chars.next().is_some(),
             Some(pc) => {
-                match pc {
-                    '?' => return path_chars.next().is_some(),
-                    _ => {
-                        match path_chars.next() {
-                            None => return false,
-                            Some(sc) => if pc != sc { return false },
-                        }
-                    }
+                match path_chars.next() {
+                    None => return false,
+                    Some(sc) => if pc != sc { return false },
                 }
             }
         }
