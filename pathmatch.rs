@@ -5,7 +5,7 @@ pub fn pathmatch(pattern: &str, pathstring: &str) -> bool
     loop {
         match pattern_chars.next() {
             None => return path_chars.next().is_none(),
-            Some('?') => return path_chars.next().is_some(),
+            Some('?') => if path_chars.next().is_none() { return false; },
             Some(pc) => {
                 match path_chars.next() {
                     None => return false,
@@ -26,6 +26,7 @@ fn pathmatch_test_anychar()
     assert!(pathmatch("?C", "BC"));
     assert!(!pathmatch("?", ""));
     assert!(!pathmatch("D?", "BC"));
+    assert!(!pathmatch("?E", "BC"));
 }
 
 #[test]

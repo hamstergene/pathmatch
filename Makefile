@@ -1,5 +1,4 @@
-all :
-	false
+all : test
 
 test : ./test-pathmatch
 	./test-pathmatch
