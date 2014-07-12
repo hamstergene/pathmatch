@@ -14,15 +14,29 @@ pub fn pathmatch(pattern: &str, pathstring: &str) -> bool
                     None | Some('/') => return false,
                     _ => (),
                 },
-                Some('*') => loop {
-                    if pathmatch_impl(pattern_chars, path_chars) {
-                        return true;
-                    }
-                    match path_chars.next() {
-                        None => break,
-                        Some('/') => return false,
-                        _ => (),
-                    }
+                Some('*') => match pattern_chars.peekable().peek() {
+                    Some(&'*') => {
+                        pattern_chars.next();
+                        loop {
+                            if pathmatch_impl(pattern_chars, path_chars) {
+                                return true;
+                            }
+                            match path_chars.next() {
+                                None => break,
+                                _ => (),
+                            }
+                        }
+                    },
+                    _ => loop {
+                        if pathmatch_impl(pattern_chars, path_chars) {
+                            return true;
+                        }
+                        match path_chars.next() {
+                            None => break,
+                            Some('/') => return false,
+                            _ => (),
+                        }
+                    },
                 },
                 Some(pc) => {
                     match path_chars.next() {
@@ -33,6 +47,20 @@ pub fn pathmatch(pattern: &str, pathstring: &str) -> bool
             }
         }
     }
+}
+
+#[test]
+fn pathmatch_test_anypath()
+{
+    assert!(pathmatch("**", ""));
+    assert!(pathmatch("a**", "a/b/c"));
+    assert!(pathmatch("**c", "a/b/c"));
+    assert!(pathmatch("a**c", "a/b/c"));
+    assert!(pathmatch("a/**/c", "a/b/c"));
+    assert!(pathmatch("**/c", "a/b/c"));
+    assert!(!pathmatch("**/g", "e/fg"));
+    assert!(pathmatch("a/**", "a/b/c"));
+    assert!(!pathmatch("e/**", "ef/g"));
 }
 
 #[test]
