@@ -10,13 +10,18 @@ pub fn pathmatch(pattern: &str, pathstring: &str) -> bool
         loop {
             match pattern_chars.next() {
                 None => return path_chars.next().is_none(),
-                Some('?') => if path_chars.next().is_none() { return false; },
+                Some('?') => match path_chars.next() {
+                    None | Some('/') => return false,
+                    _ => (),
+                },
                 Some('*') => loop {
                     if pathmatch_impl(pattern_chars, path_chars) {
                         return true;
                     }
-                    if path_chars.next().is_none() {
-                        break;
+                    match path_chars.next() {
+                        None => break,
+                        Some('/') => return false,
+                        _ => (),
                     }
                 },
                 Some(pc) => {
@@ -28,6 +33,15 @@ pub fn pathmatch(pattern: &str, pathstring: &str) -> bool
             }
         }
     }
+}
+
+#[test]
+fn pathmatch_test_pathsep()
+{
+    assert!(!pathmatch("a?b", "a/b"));
+    assert!(!pathmatch("a*b", "a/b"));
+    assert!(pathmatch("a*/b", "a/b"));
+    assert!(pathmatch("a/*b", "a/b"));
 }
 
 #[test]
