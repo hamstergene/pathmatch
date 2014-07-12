@@ -1,19 +1,50 @@
 pub fn pathmatch(pattern: &str, pathstring: &str) -> bool
 {
-    let mut pattern_chars = pattern.chars();
-    let mut path_chars = pathstring.chars();
-    loop {
-        match pattern_chars.next() {
-            None => return path_chars.next().is_none(),
-            Some('?') => if path_chars.next().is_none() { return false; },
-            Some(pc) => {
-                match path_chars.next() {
-                    None => return false,
-                    Some(sc) => if pc != sc { return false },
+    use std::str::Chars;
+    let pattern_chars = pattern.chars();
+    let path_chars = pathstring.chars();
+    return pathmatch_impl(pattern_chars, path_chars);
+
+    fn pathmatch_impl(mut pattern_chars: Chars, mut path_chars: Chars) -> bool
+    {
+        loop {
+            match pattern_chars.next() {
+                None => return path_chars.next().is_none(),
+                Some('?') => if path_chars.next().is_none() { return false; },
+                Some('*') => loop {
+                    if pathmatch_impl(pattern_chars, path_chars) {
+                        return true;
+                    }
+                    if path_chars.next().is_none() {
+                        break;
+                    }
+                },
+                Some(pc) => {
+                    match path_chars.next() {
+                        None => return false,
+                        Some(sc) => if pc != sc { return false },
+                    }
                 }
             }
         }
     }
+}
+
+#[test]
+fn pathmatch_test_anyname()
+{
+    assert!(pathmatch("*", ""));
+    assert!(pathmatch("*", "?"));
+    assert!(pathmatch("*", "d?F"));
+    assert!(pathmatch("a*", "a"));
+    assert!(pathmatch("a*", "abcdef"));
+    assert!(pathmatch("*f", "abcdef"));
+    assert!(pathmatch("a*f", "abcdef"));
+    assert!(pathmatch("*cd*", "abcdef"));
+    assert!(pathmatch("a*cd*f", "abcdef"));
+    assert!(pathmatch("acdf", "acdf"));
+    assert!(!pathmatch("*a", "abc"));
+    assert!(!pathmatch("c*", "abc"));
 }
 
 #[test]
