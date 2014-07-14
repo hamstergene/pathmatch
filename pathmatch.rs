@@ -132,17 +132,37 @@ pub fn pathmatch(pattern: &str, pathstring: &str) -> bool
     }
 }
 
+#[cfg(test)]
+fn assert_pathmatch_many(pattern: &str, paths_yes: &[&str], paths_no: &[&str])
+{
+    for path in paths_yes.iter() {
+        assert!(pathmatch(pattern, *path), "should match: pattern:'{}' path:'{}'", pattern, path);
+    }
+    for path in paths_no.iter() {
+        assert!(!pathmatch(pattern, *path), "must not match: pattern:'{}' path:'{}'", pattern, path);
+    }
+}
+
+#[test]
+fn pathmatch_test_alt_combos()
+{
+//    assert_pathmatch_many("{foo/**,**/bar}", ["foo", "bar"], ["foobar"]);
+    assert_pathmatch_many("a{?,/}c", ["abc", "a/c"], ["ac", "abbc"]);
+//    assert_pathmatch_many("{foo/**,bar}baz", ["barbaz", "foo/baz"], ["foobaz"]);
+//    assert_pathmatch_many("foo{bar,**/baz}", ["foobar", "foo/baz"], ["foobaz"]);
+}
+
 #[test]
 fn pathmatch_test_alt()
 {
     assert!(pathmatch("{foo}", "foo"));
-    assert!(pathmatch("{foo,bar,baz}", "foo"));
-    assert!(pathmatch("{foo,bar,baz}", "bar"));
-    assert!(pathmatch("{foo,bar,baz}", "baz"));
-    assert!(!pathmatch("{foo,bar,baz}", "qux"));
-    assert!(pathmatch("{foo,bar}", "foo"));
-    assert!(pathmatch("{foo,bar}", "bar"));
+    assert_pathmatch_many("{foo,bar,baz}", ["foo", "bar", "baz"], ["", "foobarbaz", "qux"]);
+    assert_pathmatch_many("{foo,bar}", ["foo", "bar"], ["", "foobar"]);
     assert!(pathmatch("{}", ""));
+    assert!(!pathmatch("{}", "{}"));
+    assert!(pathmatch("{foo}{bar}", "foobar"));
+    assert!(pathmatch("{foo}*{bar}", "foobar"));
+    assert!(pathmatch("{foo}*{bar}", "fooXXbar"));
 }
 
 #[test]
