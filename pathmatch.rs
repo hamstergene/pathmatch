@@ -45,12 +45,12 @@ pub fn pathmatch(pattern: &str, pathstring: &str) -> bool
             pattern_chars_copy.next();
             pattern_chars_copy.next();
             pattern_chars_copy.next();
-            if pathmatch_try(pattern_chars_copy, path_chars, alt_branch_mode) {
+            if !path_chars.peekable().is_empty() && pathmatch_try(pattern_chars_copy, path_chars, alt_branch_mode) {
                 return true;
             }
         }
         loop {
-            if char_iter_equals(pattern_chars, "/**", alt_branch_mode, false) && path_chars.peekable().is_empty() {
+            if !path_chars.at_the_beginning && char_iter_equals(pattern_chars, "/**", alt_branch_mode, false) && path_chars.peekable().is_empty() {
                 return true;
             }
             match pattern_chars.next() {
@@ -183,6 +183,8 @@ fn pathmatch_test_alt_combos()
     assert_pathmatch_many("{foo/**,**/bar}", ["foo", "bar"], ["foobar"]);
     assert_pathmatch_many("{foo/**,bar}baz", ["barbaz", "foo/baz"], ["foobaz"]);
     assert_pathmatch_many("foo{bar,**/baz}", ["foobar", "foo/baz"], ["foobaz"]);
+    assert!(!pathmatch("{**/}", ""));
+    assert!(!pathmatch("{{**/}}", ""));
 }
 
 #[test]
@@ -222,6 +224,7 @@ fn pathmatch_test_anypath_leading()
     assert!(pathmatch("**/bar", "/bar"));
     assert!(!pathmatch("a**/bar", "abar"));
     assert!(!pathmatch("*/bar", "bar"));
+    assert!(!pathmatch("**/", ""));
 }
 
 #[test]
@@ -232,6 +235,8 @@ fn pathmatch_test_anypath_trailing()
     assert!(pathmatch("foo/**", "foo/"));
     assert!(!pathmatch("foo/**g", "foog"));
     assert!(!pathmatch("foo/*", "foo"));
+    assert!(!pathmatch("/**", ""));
+    assert!(pathmatch("/**", "/"));
 }
 
 #[test]
