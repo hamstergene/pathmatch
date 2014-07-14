@@ -1,3 +1,14 @@
+#![feature(macro_rules)]
+
+macro_rules! return_if_some(
+    ($arg:expr) => (
+        match $arg {
+            Some(val) => return val,
+            None => {},
+        }
+    );
+)
+
 pub fn pathmatch(pattern: &str, pathstring: &str) -> bool
 {
     use std::str::Chars;
@@ -30,43 +41,41 @@ pub fn pathmatch(pattern: &str, pathstring: &str) -> bool
                 Some('*') => match pattern_chars.peekable().peek() {
                     Some(&'*') => {
                         pattern_chars.next();
-                        loop {
-                            if pathmatch_impl(pattern_chars, path_chars) {
-                                return true;
-                            }
-                            match path_chars.next() {
-                                None => break,
-                                _ => (),
-                            }
-                        }
+                        return_if_some!(match_any(pattern_chars, &mut path_chars, true));
                     },
-                    _ => loop {
-                        if pathmatch_impl(pattern_chars, path_chars) {
-                            return true;
-                        }
-                        match path_chars.next() {
-                            None => break,
-                            Some('/') => return false,
-                            _ => (),
-                        }
-                    },
+                    _ => return_if_some!(match_any(pattern_chars, &mut path_chars, false)),
                 },
                 Some('/') => {
-                    match path_chars.next() {
-                        None => return false,
-                        Some(sc) => if sc != '/' { return false },
-                    }
+                    return_if_some!(match_exact('/', path_chars.next()));
                     if char_iter_equals(pattern_chars, "**/", true) && pathmatch_impl(pattern_chars, path_chars) {
                         return true;
                     }
                 },
-                Some(pc) => {
-                    match path_chars.next() {
-                        None => return false,
-                        Some(sc) => if pc != sc { return false },
-                    }
-                }
+                Some(pc) => return_if_some!(match_exact(pc, path_chars.next())),
             }
+        }
+    }
+
+    fn match_any(pattern_chars: Chars, path_chars: &mut Chars, allow_pathsep: bool) -> Option<bool>
+    {
+        loop {
+            if pathmatch_impl(pattern_chars, path_chars.clone()) {
+                return Some(true);
+            }
+            match path_chars.next() {
+                None => return None,
+                Some('/') if !allow_pathsep => return Some(false),
+                _ => {},
+            }
+        }
+    }
+
+    fn match_exact(pattern_char: char, path_char: Option<char>) -> Option<bool>
+    {
+        match path_char {
+            None => return Some(false),
+            Some(x) if x != pattern_char => return Some(false),
+            _ => return None,
         }
     }
 
