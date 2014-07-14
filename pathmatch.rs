@@ -28,6 +28,18 @@ pub fn pathmatch(pattern: &str, pathstring: &str) -> bool
         Cursor { chars: arg.chars(), at_the_beginning: true }
     }
 
+    impl<'a> Cursor<'a>
+    {
+        fn clone_times_next(&'a self, n: int) -> Cursor<'a>
+        {
+            let mut rv = self.clone();
+            for _ in range(0, n) {
+                if None == rv.next() { break }
+            }
+            return rv
+        }
+    }
+
     impl<'a> Iterator<char> for Cursor<'a>
     {
         fn next<'a>(&mut self) -> Option<char>
@@ -40,12 +52,7 @@ pub fn pathmatch(pattern: &str, pathstring: &str) -> bool
     fn pathmatch_impl(mut pattern_chars: Cursor, path_chars: &mut Cursor, alt_branch_mode: bool) -> bool
     {
         if path_chars.at_the_beginning && char_iter_equals(pattern_chars, "**/", alt_branch_mode, true) {
-            // How can I convert Skip<Cursor> to Cursor to make use of .skip(3) ?
-            let mut pattern_chars_copy = pattern_chars;
-            pattern_chars_copy.next();
-            pattern_chars_copy.next();
-            pattern_chars_copy.next();
-            if !path_chars.peekable().is_empty() && pathmatch_try(pattern_chars_copy, path_chars, alt_branch_mode) {
+            if !path_chars.peekable().is_empty() && pathmatch_try(pattern_chars.clone_times_next(3), path_chars, alt_branch_mode) {
                 return true;
             }
         }
@@ -69,11 +76,7 @@ pub fn pathmatch(pattern: &str, pathstring: &str) -> bool
                 Some('/') => {
                     return_if_some!(match_exact('/', path_chars.next(), alt_branch_mode));
                     if char_iter_equals(pattern_chars, "**/", alt_branch_mode, true) {
-                        let mut pattern_chars_copy = pattern_chars;
-                        pattern_chars_copy.next();
-                        pattern_chars_copy.next();
-                        pattern_chars_copy.next();
-                        if pathmatch_try(pattern_chars_copy, path_chars, alt_branch_mode) {
+                        if pathmatch_try(pattern_chars.clone_times_next(3), path_chars, alt_branch_mode) {
                             return true;
                         }
                     }
