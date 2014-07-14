@@ -13,10 +13,10 @@ pub fn pathmatch(pattern: &str, pathstring: &str) -> bool
 {
     use std::str::Chars;
     let pattern_chars = pattern.chars();
-    let path_chars = pathstring.chars();
-    return pathmatch_impl(pattern_chars, path_chars);
+    let mut path_chars = pathstring.chars();
+    return pathmatch_impl(pattern_chars, &mut path_chars, false);
 
-    fn pathmatch_impl(mut pattern_chars: Chars, mut path_chars: Chars) -> bool
+    fn pathmatch_impl(mut pattern_chars: Chars, path_chars: &mut Chars, alt_branch_mode: bool) -> bool
     {
         if char_iter_equals(pattern_chars, "**/", true) {
             // How can I convert Skip<Chars> to Chars to make use of .skip(3) ?
@@ -24,7 +24,7 @@ pub fn pathmatch(pattern: &str, pathstring: &str) -> bool
             pattern_chars_copy.next();
             pattern_chars_copy.next();
             pattern_chars_copy.next();
-            if pathmatch_impl(pattern_chars_copy, path_chars) {
+            if pathmatch_try(pattern_chars_copy, path_chars, alt_branch_mode) {
                 return true;
             }
         }
@@ -41,25 +41,65 @@ pub fn pathmatch(pattern: &str, pathstring: &str) -> bool
                 Some('*') => match pattern_chars.peekable().peek() {
                     Some(&'*') => {
                         pattern_chars.next();
-                        return_if_some!(match_any(pattern_chars, &mut path_chars, true));
+                        return_if_some!(match_any(pattern_chars, path_chars, alt_branch_mode, true));
                     },
-                    _ => return_if_some!(match_any(pattern_chars, &mut path_chars, false)),
+                    _ => return_if_some!(match_any(pattern_chars, path_chars, alt_branch_mode, false)),
                 },
                 Some('/') => {
-                    return_if_some!(match_exact('/', path_chars.next()));
-                    if char_iter_equals(pattern_chars, "**/", true) && pathmatch_impl(pattern_chars, path_chars) {
+                    return_if_some!(match_exact('/', path_chars.next(), alt_branch_mode));
+                    if char_iter_equals(pattern_chars, "**/", true) && pathmatch_try(pattern_chars, path_chars, alt_branch_mode) {
                         return true;
                     }
                 },
-                Some(pc) => return_if_some!(match_exact(pc, path_chars.next())),
+                Some('{') => {
+                    let mut matched_something = false;
+                    loop {
+                        if !matched_something && pathmatch_try(pattern_chars, path_chars, true) {
+                            matched_something = true;
+                        }
+                        match skip_alt_branch(&mut pattern_chars) {
+                            Some(false) => break,
+                            Some(true) => {},
+                            None => /* error in pattern */ return false,
+                        }
+                    }
+                    if !matched_something {
+                        return false;
+                    }
+                },
+                Some(',') | Some('}') if alt_branch_mode => return true,
+                Some(pc) => return_if_some!(match_exact(pc, path_chars.next(), alt_branch_mode)),
             }
         }
     }
 
-    fn match_any(pattern_chars: Chars, path_chars: &mut Chars, allow_pathsep: bool) -> Option<bool>
+    fn pathmatch_try(pattern_chars: Chars, path_chars: &mut Chars, alt_branch_mode: bool) -> bool
+    {
+        let mut path_chars_copy = path_chars.clone();
+        if pathmatch_impl(pattern_chars, &mut path_chars_copy, alt_branch_mode) {
+            *path_chars = path_chars_copy;
+            return true;
+        }
+        return false;
+    }
+
+    fn skip_alt_branch(pattern_chars: &mut Chars) -> Option<bool>
     {
         loop {
-            if pathmatch_impl(pattern_chars, path_chars.clone()) {
+            match pattern_chars.next() {
+                Some(',') => return Some(true),
+                Some('}') => return Some(false),
+                Some('{') => if skip_alt_branch(pattern_chars).is_none() { return None; },
+                None => return None,
+                _ => {},
+            }
+        }
+    }
+
+    fn match_any(pattern_chars: Chars, path_chars: &mut Chars, alt_branch_mode: bool, allow_pathsep: bool) -> Option<bool>
+    {
+        loop {
+            if pathmatch_try(pattern_chars, path_chars, alt_branch_mode) {
                 return Some(true);
             }
             match path_chars.next() {
@@ -70,10 +110,11 @@ pub fn pathmatch(pattern: &str, pathstring: &str) -> bool
         }
     }
 
-    fn match_exact(pattern_char: char, path_char: Option<char>) -> Option<bool>
+    fn match_exact(pattern_char: char, path_char: Option<char>, alt_branch_mode: bool) -> Option<bool>
     {
         match path_char {
             None => return Some(false),
+            Some(',') | Some('}') if alt_branch_mode => return Some(false),
             Some(x) if x != pattern_char => return Some(false),
             _ => return None,
         }
@@ -89,6 +130,19 @@ pub fn pathmatch(pattern: &str, pathstring: &str) -> bool
         }
         return if startswith { true } else { char_iter.next().is_none() };
     }
+}
+
+#[test]
+fn pathmatch_test_alt()
+{
+    assert!(pathmatch("{foo}", "foo"));
+    assert!(pathmatch("{foo,bar,baz}", "foo"));
+    assert!(pathmatch("{foo,bar,baz}", "bar"));
+    assert!(pathmatch("{foo,bar,baz}", "baz"));
+    assert!(!pathmatch("{foo,bar,baz}", "qux"));
+    assert!(pathmatch("{foo,bar}", "foo"));
+    assert!(pathmatch("{foo,bar}", "bar"));
+    assert!(pathmatch("{}", ""));
 }
 
 #[test]
