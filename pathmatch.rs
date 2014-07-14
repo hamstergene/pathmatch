@@ -101,7 +101,7 @@ fn pathmatch_test_collapse()
 #[test]
 fn pathmatch_test_anypath_leading()
 {
-    // `**/` at the beginning of pattern may match a single slash.
+    // `**/` at the beginning of pattern may match nothing.
     assert!(pathmatch("**/bar", "bar"));
     assert!(pathmatch("**/bar", "/bar"));
     assert!(!pathmatch("a**/bar", "abar"));
@@ -111,7 +111,7 @@ fn pathmatch_test_anypath_leading()
 #[test]
 fn pathmatch_test_anypath_trailing()
 {
-    // `/**` at the end of pattern may match a single slash.
+    // `/**` at the end of pattern may match nothing.
     assert!(pathmatch("foo/**", "foo"));
     assert!(pathmatch("foo/**", "foo/"));
     assert!(!pathmatch("foo/**g", "foog"));
