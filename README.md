@@ -31,3 +31,27 @@ In other words, `**/` may match start of the path string, `/**` may match end of
 
 The `?` wildcard is also supported, matching exactly one character excluding path separator.
 
+`pmfind` command line tool
+----
+
+You can use the included `pmfind` tool to test `pathmatch()` in real world:
+
+      $ ./pmfind '{*.rs,Makefile}' '**/{logs,master}'
+    pmfind.rs
+    pathmatch.rs
+    Makefile
+    .git/refs/remotes/origin/master
+    .git/refs/heads/master
+    .git/logs
+    .git/logs/refs/remotes/origin/master
+    .git/logs/refs/heads/master
+
+Usage:
+
+    Usage:
+            ./pmfind [options] [pattern ...]
+
+    Options:
+        -C --dir dir        change directory to this before starting
+        -h --help           print help and exit
+
