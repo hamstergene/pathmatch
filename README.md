@@ -6,28 +6,28 @@ This is an experiment to develop an improved alternative to [POSIX `fnmatch` fun
 A quick taste of the idea
 ----
 
-`*.txt` matches all plain text files in the current directory. `*` does not match path separators:
+`*.txt` matches file names without path, if they end with “.txt”:
 
     one.txt
     two.txt
 
-`**.txt` matches all plain text files recursively starting from the current directory:
+`**.txt` matches any path ending with “.txt”:
 
     one.txt
     two.txt
     foo/3.txt
     foo/bar/4.txt
 
-`**/build/**` would match any path containing given component, including just bare string `build` itself (without any slashes).
+`**/build/**` would match any path containing “build” folder anywhere in it, including the bare string `build` itself.
 
-`**/build/{Debug,Release}` matches any path ending with `build/Debug` or `build/Release` (including exactly those):
+`**/build/{Debug,Release}` matches paths whose two last folders are either `build/Debug` or `build/Release`:
 
     build/Debug
     build/Release
     subproject1/build/Debug
     subproject1/build/Release
 
-To exclude current folder from search, just require at least one path compoment: `*/**/build/{Debug,Release}`. In other words, `**/` may match start of the path string, `/**` may match end of the path string, and `/**/` may match single path separator (`/`).
+In other words, `**/` may match start of the path string, `/**` may match end of the path string, and `/**/` may match single path separator (`/`). To disable this behavior, explicitly require something to be present before/after: `*/**/build/{Debug,Release}`, `*/**/build/**/*`.
 
 The `?` wildcard is also supported, matching exactly one character excluding path separator.
 
