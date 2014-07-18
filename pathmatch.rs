@@ -119,7 +119,14 @@ pub fn pathmatch(pattern: &str, pathstring: &str) -> bool
             match pattern_chars.next() {
                 Some(',') => return Some(true),
                 Some('}') => return Some(false),
-                Some('{') => if skip_alt_branch(pattern_chars).is_none() { return None; },
+                Some('{') => loop {
+                    match skip_alt_branch(pattern_chars)
+                    {
+                        Some(true) => {},
+                        Some(false) => break,
+                        None => return None,
+                    }
+                },
                 None => return None,
                 _ => {},
             }
@@ -177,6 +184,12 @@ fn assert_pathmatch_many(pattern: &str, paths_yes: &[&str], paths_no: &[&str])
     for path in paths_no.iter() {
         assert!(!pathmatch(pattern, *path), "must not match: pattern:'{}' path:'{}'", pattern, path);
     }
+}
+
+#[test]
+fn pathmatch_test_regressions()
+{
+    assert_pathmatch_many("{*.foo,bar,**/{one,two}}", ["1.foo", "2.foo", ".foo", "bar", "one", "two", "three/one"], ["foo"]);
 }
 
 #[test]
