@@ -59,3 +59,20 @@ Usage:
         -C --dir dir        change directory to this before starting
         -h --help           print help and exit
 
+If a pattern starts with `!`, `pmfind` excludes paths matching it from output, otherwise those paths are printed. Patterns are applied in the order they appear on the command line, so the latest match decides whether the path will be printed. Paths that match no patterns are never printed. Example:
+
+      $ ./pmfind '**/master'
+    .git/refs/remotes/origin/master
+    .git/refs/heads/master
+    .git/logs/refs/remotes/origin/master
+    .git/logs/refs/heads/master
+
+      $ ./pmfind '**/master' '!**/logs/**'
+    .git/refs/remotes/origin/master
+    .git/refs/heads/master
+
+      $ ./pmfind '**/master' '!**/logs/**' '**/logs/refs/heads/master'
+    .git/refs/remotes/origin/master
+    .git/refs/heads/master
+    .git/logs/refs/heads/master
+

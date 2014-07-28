@@ -36,9 +36,14 @@ fn pmfind(matches: &getopts::Matches)
                     Some(path_str) => {
                         let mut accept = (matches.free.len() == 0);
                         for pattern_string in matches.free.iter() {
-                            if pathmatch::pathmatch(pattern_string.as_slice(), path_str) {
-                                accept = true;
-                                break;
+                            if pattern_string.as_slice().starts_with("!") {
+                                if pathmatch::pathmatch(pattern_string.as_slice().slice_from(1), path_str) {
+                                    accept = false;
+                                }
+                            } else {
+                                if pathmatch::pathmatch(pattern_string.as_slice(), path_str) {
+                                    accept = true;
+                                }
                             }
                         }
                         if accept { 
