@@ -1,11 +1,13 @@
 `pathmatch`: a better `fnmatch`
 ====
 
-This is an experiment to develop an improved alternative to [POSIX `fnmatch` function](http://pubs.opengroup.org/onlinepubs/9699919799/functions/fnmatch.html). I'm currently using Rust 0.11.
+This is an experiment to develop an improved alternative to [POSIX `fnmatch` function](http://pubs.opengroup.org/onlinepubs/9699919799/functions/fnmatch.html). It can be used, for example, when implementing `.gitignore`-like functionality.
 
 The module interface is currently a single global function, without extra options:
 
     pub fn pathmatch(pattern: &str, pathstring: &str) -> bool
+
+Note: this implementation does not exactly match actual `.gitignore` and contains more functionality (e.g. `{}` patterns).
 
 A quick taste of the idea
 ----
