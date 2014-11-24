@@ -1,10 +1,17 @@
 [package]
 
 name = "pathmatch"
-version = "0.1.1"
-authors = ["Eugene Khomyakov <ehomyakov@gmail.com>"]
+version = "0.1.2"
+authors = ["Eugene Homyakov <ehomyakov@gmail.com>"]
+license = "MIT"
 
-[[lib]]
+description = "A better version of `fnmatch()`, supporting `**` like `.gitignore`"
+repository = "https://github.com/hamstergene/pathmatch"
+
+readme = "README.md"
+keywords = ["fnmatch", "glob", "gitignore"]
+
+[lib]
 
 name = "pathmatch"
 

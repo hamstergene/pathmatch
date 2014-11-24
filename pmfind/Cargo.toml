@@ -1,8 +1,8 @@
 [package]
 
 name = "pmfind"
-version = "0.1.1"
-authors = ["Eugene Khomyakov <ehomyakov@gmail.com>"]
+version = "0.1.2"
+authors = ["Eugene Homyakov <ehomyakov@gmail.com>"]
 
 [[bin]]
 name = "pmfind"
