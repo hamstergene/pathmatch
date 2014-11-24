@@ -189,16 +189,16 @@ fn assert_pathmatch_many(pattern: &str, paths_yes: &[&str], paths_no: &[&str])
 #[test]
 fn pathmatch_test_regressions()
 {
-    assert_pathmatch_many("{*.foo,bar,**/{one,two}}", ["1.foo", "2.foo", ".foo", "bar", "one", "two", "three/one"], ["foo"]);
+    assert_pathmatch_many("{*.foo,bar,**/{one,two}}", &["1.foo", "2.foo", ".foo", "bar", "one", "two", "three/one"], &["foo"]);
 }
 
 #[test]
 fn pathmatch_test_alt_combos()
 {
-    assert_pathmatch_many("a{?,/}c", ["abc", "a/c"], ["ac", "abbc"]);
-    assert_pathmatch_many("{foo/**,**/bar}", ["foo", "bar"], ["foobar"]);
-    assert_pathmatch_many("{foo/**,bar}baz", ["barbaz", "foo/baz"], ["foobaz"]);
-    assert_pathmatch_many("foo{bar,**/baz}", ["foobar", "foo/baz"], ["foobaz"]);
+    assert_pathmatch_many("a{?,/}c", &["abc", "a/c"], &["ac", "abbc"]);
+    assert_pathmatch_many("{foo/**,**/bar}", &["foo", "bar"], &["foobar"]);
+    assert_pathmatch_many("{foo/**,bar}baz", &["barbaz", "foo/baz"], &["foobaz"]);
+    assert_pathmatch_many("foo{bar,**/baz}", &["foobar", "foo/baz"], &["foobaz"]);
     assert!(!pathmatch("{**/}", ""));
     assert!(!pathmatch("{{**/}}", ""));
 }
@@ -207,8 +207,8 @@ fn pathmatch_test_alt_combos()
 fn pathmatch_test_alt()
 {
     assert!(pathmatch("{foo}", "foo"));
-    assert_pathmatch_many("{foo,bar,baz}", ["foo", "bar", "baz"], ["", "foobarbaz", "qux"]);
-    assert_pathmatch_many("{foo,bar}", ["foo", "bar"], ["", "foobar"]);
+    assert_pathmatch_many("{foo,bar,baz}", &["foo", "bar", "baz"], &["", "foobarbaz", "qux"]);
+    assert_pathmatch_many("{foo,bar}", &["foo", "bar"], &["", "foobar"]);
     assert!(pathmatch("{}", ""));
     assert!(!pathmatch("{}", "{}"));
     assert!(pathmatch("{foo}{bar}", "foobar"));

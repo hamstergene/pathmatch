@@ -1,0 +1,12 @@
+[package]
+
+name = "pmfind"
+version = "0.1.1"
+authors = ["Eugene Khomyakov <ehomyakov@gmail.com>"]
+
+[[bin]]
+name = "pmfind"
+
+[dependencies.pathmatch]
+path = ".."
+

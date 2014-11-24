@@ -1,0 +1,10 @@
+[package]
+
+name = "pathmatch"
+version = "0.1.1"
+authors = ["Eugene Khomyakov <ehomyakov@gmail.com>"]
+
+[[lib]]
+
+name = "pathmatch"
+

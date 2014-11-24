@@ -1,4 +1,3 @@
-test-pathmatch
-pmfind
-*.dSYM
+Cargo.lock
+target
 

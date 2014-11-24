@@ -1,32 +1,32 @@
 #![feature(macro_rules)]
 extern crate getopts;
+extern crate pathmatch;
 use std::os;
-mod pathmatch;
 
 fn main()
 {
     let args = os::args();
     let program = args.get(0).clone();
-    let optspec: &[getopts::OptGroup] = [
+    let optspec = [
         getopts::optopt("C", "dir", "change directory to this before starting", "dir"),
         getopts::optflag("h", "help", "print help and exit"),
         ];
-    match getopts::getopts(args.tail(), optspec) {
+    match getopts::getopts(args.tail(), &optspec) {
         Ok(matches) => {
             if matches.opt_present("h") {
-                println!("{}", getopts::usage(format!("Print subpaths of current directory that match given pathmatch() patterns\n\nUsage:\n\t{} [options] [pattern ...]", program).as_slice(), optspec));
+                println!("{}", getopts::usage(format!("Print subpaths of current directory that match given pathmatch() patterns\n\nUsage:\n\t{} [options] [pattern ...]", program).as_slice(), &optspec));
             } else {
                 pmfind(&matches);
             }
         },
-        Err(x) => fail!(x.to_str()),
+        Err(x) => panic!(x.to_string()),
     }
 }
 
 fn pmfind(matches: &getopts::Matches)
 {
     match matches.opt_str("C") {
-        Some(dir) => if !os::change_dir(&Path::new(dir.clone())) { fail!("Can not chdir to: {}", dir); },
+        Some(dir) => if !os::change_dir(&Path::new(dir.clone())).is_ok() { panic!("Can not chdir to: {}", dir); },
         None => {},
     }
     match std::io::fs::walk_dir(&Path::new("")) {
@@ -34,7 +34,7 @@ fn pmfind(matches: &getopts::Matches)
             for path in dirs_iter {
                 match path.as_str() {
                     Some(path_str) => {
-                        let mut accept = (matches.free.len() == 0);
+                        let mut accept = matches.free.len() == 0;
                         for pattern_string in matches.free.iter() {
                             if pattern_string.as_slice().starts_with("!") {
                                 if pathmatch::pathmatch(pattern_string.as_slice().slice_from(1), path_str) {
@@ -54,6 +54,6 @@ fn pmfind(matches: &getopts::Matches)
                 }
             }
         },
-        Err(res) => fail!("{}", res.to_str()),
+        Err(res) => panic!("{}", res.to_string()),
     }
 }
