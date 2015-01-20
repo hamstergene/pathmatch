@@ -1,13 +1,13 @@
-#![feature(macro_rules)]
+use std::clone::Clone;
 
-macro_rules! return_if_some(
+macro_rules! return_if_some {
     ($arg:expr) => (
         match $arg {
             Some(val) => return val,
             None => {},
         }
     );
-)
+}
 
 pub fn pathmatch(pattern: &str, pathstring: &str) -> bool
 {
@@ -16,7 +16,7 @@ pub fn pathmatch(pattern: &str, pathstring: &str) -> bool
     let mut path_chars = cursor(pathstring);
     return pathmatch_impl(pattern_chars, &mut path_chars, false);
 
-    #[deriving(Clone)]
+    #[derive(Clone,Copy)]
     struct Cursor<'a>
     {
         chars: Chars<'a>,
@@ -30,7 +30,7 @@ pub fn pathmatch(pattern: &str, pathstring: &str) -> bool
 
     impl<'a> Cursor<'a>
     {
-        fn clone_times_next(&'a self, n: int) -> Cursor<'a>
+        fn clone_times_next(&'a self, n: u8) -> Cursor<'a>
         {
             let mut rv = self.clone();
             for _ in range(0, n) {
@@ -40,9 +40,11 @@ pub fn pathmatch(pattern: &str, pathstring: &str) -> bool
         }
     }
 
-    impl<'a> Iterator<char> for Cursor<'a>
+    impl<'a> Iterator for Cursor<'a>
     {
-        fn next<'a>(&mut self) -> Option<char>
+        type Item = char;
+        
+        fn next(&mut self) -> Option<char>
         {
             self.at_the_beginning = false;
             return self.chars.next();
