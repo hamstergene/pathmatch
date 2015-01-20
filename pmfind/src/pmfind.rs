@@ -1,4 +1,3 @@
-#![feature(macro_rules)]
 extern crate getopts;
 extern crate pathmatch;
 use std::os;
@@ -6,7 +5,7 @@ use std::os;
 fn main()
 {
     let args = os::args();
-    let program = args.get(0).clone();
+    let program = args.get(0).unwrap().clone();
     let optspec = [
         getopts::optopt("C", "dir", "change directory to this before starting", "dir"),
         getopts::optflag("h", "help", "print help and exit"),
